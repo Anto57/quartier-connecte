@@ -2,14 +2,15 @@
 
 ## Présentation
 
-Quartier Connecté est une plateforme open source permettant de déployer :
+Quartier Connecté est un projet open source visant à créer une plateforme numérique de proximité comprenant :
 
-- un hotspot Wi-Fi sécurisé
-- un portail captif moderne
-- une plateforme communautaire de quartier
-- un espace dédié aux commerces
-- une interface d'aide aux livreurs
-- un système de signalement et d'entraide
+- Un accès Wi-Fi gratuit et sécurisé.
+- Un portail captif personnalisé.
+- Un mini-site communautaire.
+- Des informations sur la vie du quartier.
+- Un espace dédié aux commerces et associations.
+- Des outils d'entraide et de signalement.
+- Une interface d'administration.
 
 Premier déploiement :
 
@@ -17,148 +18,182 @@ Premier déploiement :
 
 ---
 
-# État du projet
+## État du projet
 
-## ✔ Fonctionnel
+### Fonctionnel
 
-- Debian 13 installé
-- dépôt Git initialisé
-- Hostapd opérationnel
-- Point d'accès Wi-Fi diffusé
-- SSID : **Mermoz WiFi gratuit**
-- Interface AP : **wlo1**
-- Interface Internet : **wlx90f652138020**
-- dnsmasq installé
-- OpenNDS installé
+- Debian 13 installé et configuré.
+- Dépôt GitHub opérationnel.
+- Point d'accès Wi-Fi Hostapd.
+- SSID : `Mermoz WiFi gratuit`.
+- DHCP avec dnsmasq.
+- Routage Internet et NAT.
+- Portail captif OpenNDS.
+- Authentification des utilisateurs.
+- Notifications Telegram lors des connexions et déconnexions Wi-Fi.
+- Notifications Telegram après validation du portail captif.
+- Registre local des appareils connus.
+- Association d'un nom aux appareils enregistrés.
 
----
+### En cours de développement
 
-## Architecture
-
-```
-Internet
-    │
-    │
-Dongle Wi-Fi USB
-(wlx90f652138020)
-    │
-Debian
-    │
-Hostapd
-    │
-Carte Wi-Fi interne
-(wlo1)
-    │
-Mermoz WiFi gratuit
-```
+- Personnalisation complète du portail captif.
+- Page de présentation du projet.
+- Inscription des utilisateurs.
+- Mini-site communautaire.
+- Commandes d'administration Telegram.
+- Statistiques de fréquentation et de consommation.
 
 ---
 
-## Plan d'adressage
+## Architecture technique
+
+\`\`\`
+                    INTERNET
+                       |
+                Dongle Wi-Fi USB
+             wlx90f652138020
+                       |
+                    Debian 13
+                       |
+             Routage IPv4 et NAT
+                       |
+              Carte Wi-Fi interne
+                     wlo1
+                       |
+              Hostapd / dnsmasq
+                       |
+              Mermoz WiFi gratuit
+                       |
+                 Appareils clients
+                       |
+                  Portail captif
+                    OpenNDS
+                       |
+             Validation des conditions
+                       |
+                 Accès Internet
+\`\`\`
+
+### Plan d'adressage
 
 | Élément | Valeur |
-|---------|---------|
-| Interface AP | wlo1 |
-| Interface Internet | wlx90f652138020 |
-| Adresse AP | 10.42.0.1 |
-| DHCP | 10.42.0.20 → 10.42.0.200 |
+|---|---|
+| Interface Internet | `wlx90f652138020` |
+| Interface Wi-Fi AP | `wlo1` |
+| Adresse de la passerelle | `10.42.0.1` |
+| Réseau local | `10.42.0.0/24` |
+| DHCP | `10.42.0.20` à `10.42.0.200` |
+| SSID | `Mermoz WiFi gratuit` |
 
 ---
 
-# Commandes utiles
+## Services
 
-## Démarrer
+| Service | Fonction |
+|---|---|
+| Hostapd | Point d'accès Wi-Fi |
+| dnsmasq | DHCP et DNS |
+| OpenNDS | Portail captif |
+| nftables | NAT |
+| Python | Scripts et notifications |
+| Telegram Bot | Alertes et administration |
 
-```bash
-sudo systemctl start hostapd
-sudo systemctl start dnsmasq
-sudo systemctl start opennds
-```
+---
 
-## Arrêter
+## Scripts du projet
 
-```bash
-sudo systemctl stop opennds
-sudo systemctl stop dnsmasq
-sudo systemctl stop hostapd
-```
+Les scripts personnalisés sont conservés dans le dépôt :
 
-## Redémarrer
+- `scripts/quartier-connecte-hostapd-event.py` : événements de connexion et déconnexion Wi-Fi.
+- `scripts/quartier-connecte-auth-notify.py` : notification après authentification.
+- `config/opennds/custombinauth.sh` : intégration avec OpenNDS.
 
-```bash
-sudo systemctl restart hostapd dnsmasq opennds
-```
+Les paramètres sensibles sont conservés localement dans `/etc/quartier-connecte/` et ne doivent jamais être publiés dans Git.
 
-## Vérifier
+---
 
-```bash
+## Commandes utiles
+
+### Vérifier les services
+
+\`\`\`bash
 sudo systemctl status hostapd
 sudo systemctl status dnsmasq
 sudo systemctl status opennds
+sudo systemctl status quartier-connecte-nat
+sudo systemctl status quartier-connecte-hostapd-events
+\`\`\`
 
-sudo iw dev
-nmcli device status
-ip addr show wlo1
-```
+### Consulter les journaux
 
-## Logs
-
-```bash
+\`\`\`bash
 sudo journalctl -u hostapd -f
 sudo journalctl -u dnsmasq -f
 sudo journalctl -u opennds -f
-```
+sudo journalctl -u quartier-connecte-hostapd-events -f
+\`\`\`
+
+### Vérifier le réseau
+
+\`\`\`bash
+ip addr
+ip route
+sudo iw dev
+sudo ndsctl status
+\`\`\`
 
 ---
 
-# Configuration
+## Sauvegarde et versionnement
 
-Hostapd
+Le projet est versionné sur GitHub.
 
-```
-/etc/hostapd/hostapd.conf
-```
+Dépôt :
 
-dnsmasq
+https://github.com/Anto57/quartier-connecte
 
-```
-/etc/dnsmasq.d/hotspot.conf
-```
+Après chaque évolution validée :
 
-OpenNDS
+\`\`\`bash
+git add .
+git diff --cached --check
+git commit -m "Description des modifications"
+git push origin main
+\`\`\`
 
-```
-/etc/opennds/opennds.conf
-```
-
----
-
-# Prochaines étapes
-
-- [ ] Configurer OpenNDS
-- [ ] Créer le portail captif
-- [ ] Authentification des utilisateurs
-- [ ] Journalisation des connexions
-- [ ] Alertes en temps réel
-- [ ] Interface d'administration
-- [ ] Déploiement Docker
-- [ ] Documentation
+Ne jamais ajouter au dépôt les tokens, mots de passe, fichiers de configuration personnels, adresses MAC ou journaux contenant des données personnelles.
 
 ---
 
-# Technologies
+## Prochaines étapes
 
-- Debian
+- [ ] Mettre en place le nouveau portail captif.
+- [ ] Créer le mini-site Quartier Connecté.
+- [ ] Ajouter une page d'information et de présentation.
+- [ ] Concevoir l'inscription des utilisateurs.
+- [ ] Ajouter les mentions légales et informations RGPD.
+- [ ] Développer les commandes Telegram `/status`, `/clients`, `/usage`.
+- [ ] Mettre en place les statistiques de consommation.
+- [ ] Développer l'interface d'administration.
+- [ ] Étudier le déploiement Docker.
+
+---
+
+## Technologies
+
+- Debian 13
 - Hostapd
 - dnsmasq
 - OpenNDS
-- Python / FastAPI
-- PostgreSQL
+- nftables
+- Python
+- Bash
 - HTML / CSS / JavaScript
-- Docker
+- Git / GitHub
 
 ---
 
-# Licence
+## Licence
 
 À définir.
