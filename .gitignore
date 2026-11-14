@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Secrets et données personnelles
+*.env
+.env
+appareils.conf
+client-id.salt
+secrets/
+logs/
+*.log
+
+# Sauvegardes locales
+*.bak
+*.bak-*
